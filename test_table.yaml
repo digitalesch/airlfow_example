@@ -1,0 +1,26 @@
+dag:
+    dependency: []
+full: 1
+where:
+    clause: 'teste'
+    value: ''
+source:
+    conn: 'oracle_test'
+    type: 'oracle'
+    database: 'orcl'
+    schema: 'bi'
+    table: ''
+    add_params: ''
+dest:
+    conn: 'dw_local'
+    type: 'postgres'
+    database: 'database'
+    schema: 'bi'
+    table: 'teste_yaml'
+    add_params: ''
+query: '
+select
+    *
+from
+    test_table
+'
