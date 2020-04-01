@@ -1,0 +1,30 @@
+dag:
+    dependency: []
+full: 0
+file:
+    path: ""
+    query: ""
+where:
+    clause: ""
+    value: ""
+source:
+    conn: "oracle_koin"
+    type: "oracle"
+    database: "database"
+    schema: ""
+    table: ""
+    add_params: ""
+dest:
+    conn: "dw_koin"
+    type: "postgres"
+    database: "database"
+    schema: "data_science"
+    table: "d_denis_temp"
+    add_params: 
+        if_exists: "replace"
+query: "
+SELECT
+    *
+FROM
+    riscos.D_DENIS_TEMP
+"
