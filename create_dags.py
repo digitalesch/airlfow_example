@@ -43,7 +43,7 @@ return_params = lambda type,param1,param2: param1 if type == 'db' else param2
 '''
     Returns the error message to be sent to Slack by getting the password from the indicated connection
 
-    :param hook_info: dictionary containing generated hook information 
+    :param hook_info: dictionary containing generated hook information
     :type hook_info: dict
     :param hook_info: query to be run on the defined hook
     :type hook_info: string
@@ -51,11 +51,11 @@ return_params = lambda type,param1,param2: param1 if type == 'db' else param2
 def task_fail_slack_alert(context):
     slack_webhook_token = BaseHook.get_connection(SLACK_CONN_ID).password
     slack_msg = """
-            :red_circle: Task Failed. 
-            *Task*: {task}  
-            *Dag*: {dag} 
-            *Execution Time*: {exec_date}  
-            *Log Url*: {log_url} 
+            :red_circle: Task Failed.
+            *Task*: {task}
+            *Dag*: {dag}
+            *Execution Time*: {exec_date}
+            *Log Url*: {log_url}
             """.format(
             task=context.get('task_instance').task_id,
             dag=context.get('task_instance').dag_id,
@@ -75,7 +75,7 @@ def task_fail_slack_alert(context):
 '''
     Returns the query from the connection defined in the argument
 
-    :param hook_info: dictionary containing generated hook information 
+    :param hook_info: dictionary containing generated hook information
     :type hook_info: dict
     :param hook_info: query to be run on the defined hook
     :type hook_info: string
@@ -87,31 +87,31 @@ def return_records(type,hook,sql_params,dest_type):
         data.columns = map(str.lower, data.columns)
         return data
 
-    return None    
+    return None
 
 '''
     Returns the associated hook for the connection info passed as argument, depending on the needed database
 
-    :param conn_info: dictionary containing generated connection information 
-    :type conn_info: dict    
+    :param conn_info: dictionary containing generated connection information
+    :type conn_info: dict
 '''
 def return_hook(conn_info):
     if conn_info['hook_type'] == 'postgres':
         return {'type':'db','db_type':conn_info['hook_type'],'hook':PostgresHook(conn_info['conn_id'])}
     if conn_info['hook_type'] == 'redshift':
-        return {'type':'db','db_type':conn_info['hook_type'],'hook':RedshiftHook(conn_info['conn_id'])}    
+        return {'type':'db','db_type':conn_info['hook_type'],'hook':RedshiftHook(conn_info['conn_id'])}
 
     return None
 
 '''
     Returns the query from the connection defined in the argument
 
-    :param hook_info: dictionary containing generated hook information 
+    :param hook_info: dictionary containing generated hook information
     :type hook_info: dict
     :param hook_info: query to be run on the defined hook
     :type hook_info: string
 '''
-def return_where_value(hook_info,query):    
+def return_where_value(hook_info,query):
     try:
         print('Incremental data: ',hook_info['hook'].get_records(query))
         return hook_info['hook'].get_records(query)
@@ -121,21 +121,21 @@ def return_where_value(hook_info,query):
 '''
     Returns the truncate statement for the connection defined in the argument
 
-    :param hook_info: dictionary containing generated hook information 
-    :type hook_info: dict    
+    :param hook_info: dictionary containing generated hook information
+    :type hook_info: dict
 '''
 def return_truncate_command(hook_info):
     if all([hook_info['type'] == 'db',hook_info['db_type'] == 'postgres']):
         return 'truncate '
     if all([hook_info['type'] == 'db',hook_info['db_type'] == 'oracle']):
         return 'truncate table '
-    
+
     return None
 
 '''
     Transforms the data to a Pandas Dataframe for later insertion through Pandas SQLAlchemy connection
 
-    :param hook_info: dictionary containing generated hook information 
+    :param hook_info: dictionary containing generated hook information
     :type hook_info: dict
     :param schema: indicates the schema to be used in the insertion
     :type schema: string
@@ -144,11 +144,11 @@ def return_truncate_command(hook_info):
     :param records: list of tuples returned by the selection statement from SQLAlchemy
     :type records: list
     :param delete_table: value to be entered if the destination table should be deleted (1) or not (0)
-    :type delete_table: int    
+    :type delete_table: int
 '''
 def insert_values(hook_info,schema,table,records,delete_table=0):
     if delete_table:
-        hook_info['hook'].run(return_truncate_command(hook_info)+schema+'.'+table+';')   
+        hook_info['hook'].run(return_truncate_command(hook_info)+schema+'.'+table+';')
     (pd.DataFrame(records)).to_sql(name=table,con=hook_info['hook'].get_sqlalchemy_engine(),schema=schema,if_exists='append',index=False,chunksize=10000,method="multi")
 
 '''
@@ -176,7 +176,7 @@ def retemplate_query(query,context):
 '''
     Returns the query from the connection defined in the argument
 
-    :param hook_info: dictionary containing generated hook information 
+    :param hook_info: dictionary containing generated hook information
     :type hook_info: dict
     :param full: value to be entered if the query to be run ignoring the templated fields (1) or not (0)
     :type full: int
@@ -197,15 +197,15 @@ def query_definition(hook_info,full,context):
 
 '''
     Reads the records from the defined yaml file
-    
+
     :param context: dictionary with the context of the task
     :type context: dict
 '''
-def read_db(**context):    
+def read_db(**context):
     # source
-    #source = 
+    #source =
     # dest
-    #dest = context['dest']    
+    #dest = context['dest']
 
     # retorna o hook de acordo com a conexão parametrizada
     data_hook = return_hook({'conn_id':context['source']['conn'],'hook_type':context['source']['type'],'add_params':context['source']['add_params']})
@@ -214,7 +214,7 @@ def read_db(**context):
     data_hook_dest = return_hook({'conn_id':context['dest']['conn'],'hook_type':context['dest']['type'],'add_params':context['dest']['add_params']})
 
     new_query = query_definition(data_hook_dest,context['params']['full'],context)
-    
+
     if context['params']['procedure'] == 'query':
         records = return_records(data_hook['type'],data_hook['hook'],return_params(data_hook['type'],new_query,context['source']['add_params']),data_hook_dest['type'])
         print('Data\n',records)
@@ -231,26 +231,26 @@ def read_db(**context):
     :type task_names: list
 '''
 def create_task_dependencies(dag,task_dependencies):
-    for dest_dependency in list(task_dependencies.keys()):    
+    for dest_dependency in list(task_dependencies.keys()):
         dest_instance = [dag.get_task(dest_dependency)]
         for source_dependency in task_dependencies[dest_dependency]:
-            source_instance = dag.get_task(source_dependency)        
+            source_instance = dag.get_task(source_dependency)
             source_instance.set_downstream(dest_instance)
 
 '''
     Parses the config file, in order to evaluate the indicated "eval" fields
 
     :param kwargs: keyworded arguments that indicate the config file
-    :type dag: dict    
+    :type dag: dict
 '''
 def parse_eval(**kwargs):
     for key, value in kwargs.items():
-        if isinstance(value,dict):            
+        if isinstance(value,dict):
             try:
                 value['eval']=eval(value['eval'])
-                kwargs[key]=value['eval']                
-            except:                
-                kwargs[key] = parse_eval(**value)         
+                kwargs[key]=value['eval']
+            except:
+                kwargs[key] = parse_eval(**value)
     return kwargs
 
 '''
@@ -270,8 +270,8 @@ def create_dag(files,**dag_parameters):
 
     # loop para usar os yamls e criar dags separados
     for file in files:
-        task_dependencies=create_dw_transfer_tasks(file,dag,task_dependencies)         
-            
+        task_dependencies=create_dw_transfer_tasks(file,dag,task_dependencies)
+
     # cria as dependencias
     create_task_dependencies(dag,task_dependencies)
 
@@ -287,23 +287,23 @@ def create_dag(files,**dag_parameters):
     :type dag: dict
 '''
 def mount_parameters(path,default_args):
-    params = {}    
-    for root, subFolders, files in os.walk(path):        
+    params = {}
+    for root, subFolders, files in os.walk(path):
         if len(files)!=0:
             dag_args = {}
             key_name = 'root'+((root.replace(path,''))).replace('/','_')
             try:
                 config_file = open(root+'/config','r')
-                stream = config_file.read()                
+                stream = config_file.read()
                 config_file.close()
                 dag_args = yaml.safe_load(stream)
             except:
-                dag_args = default_args    
+                dag_args = default_args
                 dag_args['dag_id'] = key_name
 
             params[key_name]={'path':root,'files':None}
             params[key_name]['files']=[(file.split('.')[0],root+'/'+file) for file in files if re.match(r'.*.(yaml|yml)',file)]
-            params[key_name]['dag_args'] = dag_args            
+            params[key_name]['dag_args'] = dag_args
     return params
 
 '''
@@ -318,7 +318,7 @@ def mount_parameters(path,default_args):
 '''
 def create_dw_transfer_tasks(file_parameter,dag_name,task_dependencies):
     stream = open(file_parameter[1])
-    
+
     # le a primeira linha do sql, onde estão definidos os parametros de origem, destino, tipo de carga (full:0/1) e clausula where para o incremento
     config = yaml.safe_load(stream)
 
@@ -326,7 +326,7 @@ def create_dw_transfer_tasks(file_parameter,dag_name,task_dependencies):
 
     # transforma a linha em um json
     json_line = config
-    
+
     # Pega somente o nome do arquivo, ex: FT_INVOICE.yaml retorna FT_INVOICE
     filename = file_parameter[0]
 
@@ -339,8 +339,8 @@ def create_dw_transfer_tasks(file_parameter,dag_name,task_dependencies):
     select_task = PythonOperator(
         # campos que serão transformados, conforme o template definido no arquivo sql, carrega o arquivo de transformação
         templates_dict={
-                             'query':json_line['query'] #filename+'.sql'                            
-                        },        
+                             'query':json_line['query'] #filename+'.sql'
+                        },
         task_id=task_names['select'],
         # parametros de origem / destino da conexão
         op_kwargs = {
@@ -358,7 +358,7 @@ def create_dw_transfer_tasks(file_parameter,dag_name,task_dependencies):
                     'delete_table':json_line['dest']['add_params']['delete_table'] if 'delete_table' in json_line['dest']['add_params'] else 0,
                     'procedure':json_line['dest']['add_params']['procedure'] if 'procedure' in json_line['dest']['add_params'] else 'query',
                     'untemplated_query':json_line['query']
-                    },         
+                    },
         # função de leitura
         python_callable=read_db,
         trigger_rule='none_failed',
@@ -366,18 +366,18 @@ def create_dw_transfer_tasks(file_parameter,dag_name,task_dependencies):
         provide_context = True,
         dag=dag_name,
     )
-    
+
     conj['SELECT_'+filename]={'flow':[]}
     conj['SELECT_'+filename]['flow'].append(select_task)
-    
+
     if len(json_line['dag']['dependency']) > 0:
         task_dependencies[task_names['select']] = ['SELECT_'+item for item in json_line['dag']['dependency']]
         conj['SELECT_'+filename]['dependency'] = ['SELECT_'+item for item in json_line['dag']['dependency']]
-    
+
     return task_dependencies
-    
+
 # Definicoes iniciais do DAG
-dag_args = {                
+dag_args = {
                 # Intervalo de atualização
                 'schedule_interval': '@daily',
                 # Mata o DAG caso dê timeout
@@ -399,6 +399,6 @@ params = mount_parameters(path,dag_args)
 
 conj = {}
 
-for item in enumerate(params):  
-    params[item[1]]['dag_args'] = parse_eval(**params[item[1]]['dag_args'])    
-    globals()[params[item[1]]['dag_args']['dag_id']] = create_dag(params[item[1]]['files'],**params[item[1]]['dag_args'])    
+for item in enumerate(params):
+    params[item[1]]['dag_args'] = parse_eval(**params[item[1]]['dag_args'])
+    globals()[params[item[1]]['dag_args']['dag_id']] = create_dag(params[item[1]]['files'],**params[item[1]]['dag_args'])
