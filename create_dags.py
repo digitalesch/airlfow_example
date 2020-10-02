@@ -34,7 +34,7 @@ import jinja2
 import six
 
 # nome da conexão configurada no airflow, parametros estão abaixo
-SLACK_CONN_ID = 'slack_koin'
+SLACK_CONN_ID = 'slack_conn'
 
 # função lambda para retornar os parametros incrementais / full para o template
 return_string = lambda full,param_full,param_inc: param_full if full > 0 else param_inc
